@@ -21,9 +21,9 @@ client.on('ready', () => {
 					.find(role => role.name === donator_role);
 				guildMember.roles.remove(role.id);
 
-				for(var key of Object.keys(config.roles)) {
+				for(var key of Object.keys(config.kofi_roles)) {
 					if(guildMember.roles.cache.find(r => r.name === donator_role)) {
-						guildMember.roles.remove(config.roles[key]);
+						guildMember.roles.remove(config.kofi_roles[key]);
 					}
 				}				
 			}
@@ -44,7 +44,7 @@ client.on('message', message => {
 	else if(message.content === `${prefix}ko-fi help`) {
 		message.channel.send('Para escolher os roles é necessário o role Ko-fi.');
 	}
-	else if(message.content === `${prefix}ko-fi config`) {
+	else if(message.content === `${prefix}ko-fi config` && (message.member.hasPermission("ADMINISTRATOR"))) {
 		message.channel.send({ embed: {
 			color: 3447003,
 			author: {
@@ -63,42 +63,117 @@ client.on('message', message => {
 			],
 		},
 		});
-		const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 30000 });
-		let choosen = false;
-		collector.on('collect', message => {
-			const { content } = message;
-			if (!choosen && content == 'Emoji Reactions') {
-				message.channel.send('😔 Escolhe os novos emojis, separados por um espaço');
-				choosen = true;
-			}
-			else if (!choosen && content == 'Change') {
-				message.channel.send('You Want To Change Your Spec OK!');
-				choosen = true;
-			}
-			else if (choosen && content.split(':').length - 1 == 4 && content.includes(',')) {
-				const newEmojis = content.split(',').map(e => e.replace(/[^\w\s]/gi, '').replace(/\D/g, ''));
-				const newJSON = config.roles;
-				newEmojis.map ((e, i) =>newJSON[e] = config.roles[Object.keys(config.roles)[i]]);
-				Object.keys(newJSON).map((e, i) => {
-					if (i <= 1) delete newJSON[`${e}`];
-				});
-				config.roles = newJSON;
-				fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
-			}
+
+		try {
+			const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 30000 });
+			let choosen = false;
+			collector.on('collect', message => {
+				const { content } = message;
+				if (!choosen && content == 'Emoji Reactions') {
+					message.channel.send('😔 Escolhe os novos emojis, separados por um espaço');
+					choosen = true;
+				}
+				else if (!choosen && content == 'Mensagem de Agradecimento') {
+					message.channel.send('Escreva a mensagem colocando um ### no final.');
+					choosen = true;
+				}
+				else if (choosen && content.split(':').length - 1 == 4 && content.includes(',')) {
+					const newEmojis = content.split(',').map(e => e.replace(/[^\w\s]/gi, '').replace(/\D/g, ''));
+					const newJSON = config.kofi_roles;
+					newEmojis.map ((e, i) =>newJSON[e] = config.kofi_roles[Object.keys(config.kofi_roles)[i]]);
+					Object.keys(newJSON).map((e, i) => {
+						if (i <= 1) delete newJSON[`${e}`];
+					});
+					config.kofi_roles = newJSON;
+					fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+					message.channel.send('Emojis alterados!');
+				} else if (choosen && content.includes('###')) {
+					const newMessage = content.split('###')[0];
+					config.donation_thanks_message = newMessage;
+					fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+					message.channel.send('Mensagem alterada!');
+					collector.stop();
+				}
+			});
+		} catch(err) {
+			message.channel.send('Aconteceu um erro!' + err);
+		}
+	}
+	else if(message.content === `${prefix}nitro config` && (message.member.hasPermission("ADMINISTRATOR"))) {
+		message.channel.send({ embed: {
+			color: 3447003,
+			author: {
+				name: client.user.username,
+				icon_url: client.user.avatarURL,
+			},
+			description: 'Esreva o que deseja configurar:',
+			fields: [{
+				name: 'Emoji Reactions',
+				value: 'Mude os emojis que aparecem para dar role.',
+			},
+			{
+				name: 'Mensagem de Agradecimento',
+				value: 'Edite ou desative as mensagens de agradecimento.',
+			},
+			],
+		},
 		});
+
+		try {
+			const collector = new Discord.MessageCollector(message.channel, m => m.author.id === message.author.id, { time: 30000 });
+			let choosen = false;
+			collector.on('collect', message => {
+				const { content } = message;
+				if (!choosen && content == 'Emoji Reactions') {
+					message.channel.send('😔 Escolhe os novos emojis, separados por um espaço');
+					choosen = true;
+				}
+				else if (choosen && content.split(':').length - 1 == 4 && content.includes(',')) {
+					const newEmojis = content.split(',').map(e => e.replace(/[^\w\s]/gi, '').replace(/\D/g, ''));
+					const newJSON = config.nitro_roles;
+					newEmojis.map ((e, i) =>newJSON[e] = config.nitro_roles[Object.keys(config.nitro_roles)[i]]);
+					Object.keys(newJSON).map((e, i) => {
+						if (i <= 1) delete newJSON[`${e}`];
+					});
+					config.nitro_roles = newJSON;
+					fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+					message.channel.send('Emojis alterados!');
+				}
+			});
+		} catch(err) {
+			message.channel.send('Aconteceu um erro!' + err);
+		}
 	}
 	else if(message.content === `${prefix}commands`) {
 		message.channel.send('Para escolher os roles é necessário o role Ko-fi.');
 	}
-	else if (message.content === `${prefix}ko-fi roles enable`) {
+	else if (message.content === `${prefix}ko-fi roles enable` && (message.member.hasPermission("ADMINISTRATOR"))) {
 		message.channel.send('Get your roles sis').then(sentMessage => {
-			Object.keys(config.roles).map (emoji => sentMessage.react(emoji));
+			Object.keys(config.kofi_roles).map (emoji => sentMessage.react(emoji));
 			config.kofi_message_id = sentMessage.id;
 			fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
-			requireUncached('./config.json');
-			client.destroy();
-			client.login(token);
+		});
 
+	} 
+	else if (message.content === `${prefix}nitro roles enable` && (message.member.hasPermission("ADMINISTRATOR"))) {
+		message.channel.send('Get your roles sis').then(sentMessage => {
+			Object.keys(config.nitro_roles).map (emoji => sentMessage.react(emoji));
+			config.nitro_message_id = sentMessage.id;
+			fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+		});
+
+	}
+	else if (message.content === `${prefix}roles enable` && (message.member.hasPermission("ADMINISTRATOR"))) {
+		message.channel.send('Get your roles sis').then(sentMessage => {
+			Object.keys(config.kofi_roles).map (emoji => sentMessage.react(emoji));
+			config.kofi_message_id = sentMessage.id;
+			fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+		});
+
+		message.channel.send('Get your roles sis').then(sentMessage => {
+			Object.keys(config.nitro_roles).map (emoji => sentMessage.react(emoji));
+			config.nitro_message_id = sentMessage.id;
+			fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
 		});
 
 	}
@@ -109,7 +184,7 @@ client.on('message', message => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
 	const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
-	const { kofi_message_id, roles, donator_role } = config;
+	const { kofi_message_id, kofi_roles, donator_role, nitro_role, nitro_message_id, nitro_roles } = config;
 	if(!user) return;
 	if(user.bot)return;
 	if(!reaction.message.channel.guild) return;
@@ -132,16 +207,32 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const guildMember = guild ? guild.members.cache.get(user.id) : null;
 
 	if(message.id === kofi_message_id && guildMember.roles.cache.find(r => r.name === donator_role)) {
-		if(emoji.id === Object.keys(roles)[0]) {
-			guildMember.roles.add(roles[Object.keys(roles)[0]]);
-			if (guildMember.roles.cache.find(r => r.id === roles[Object.keys(roles)[1]])) {
-				reaction.message.reactions.resolve(Object.keys(roles)[1]).users.remove(user.id);
+		if(emoji.id === Object.keys(kofi_roles)[0]) {
+			guildMember.roles.add(kofi_roles[Object.keys(kofi_roles)[0]]);
+			if (guildMember.roles.cache.find(r => r.id === kofi_roles[Object.keys(kofi_roles)[1]])) {
+				reaction.message.reactions.resolve(Object.keys(kofi_roles)[1]).users.remove(user.id);
 			}
 		}
-		else if(emoji.id === Object.keys(roles)[1]) {
-			guildMember.roles.add(roles[Object.keys(roles)[1]]);
-			if (guildMember.roles.cache.find(r => r.id === roles[Object.keys(roles)[0]])) {
-				reaction.message.reactions.resolve(Object.keys(roles)[0]).users.remove(user.id);
+		else if(emoji.id === Object.keys(kofi_roles)[1]) {
+			guildMember.roles.add(kofi_roles[Object.keys(kofi_roles)[1]]);
+			if (guildMember.roles.cache.find(r => r.id === kofi_roles[Object.keys(kofi_roles)[0]])) {
+				reaction.message.reactions.resolve(Object.keys(kofi_roles)[0]).users.remove(user.id);
+			}
+		}
+		return;
+	}
+	
+	if(message.id === nitro_message_id && guildMember.roles.cache.find(r => r.name === nitro_role)) {
+		if(emoji.id === Object.keys(nitro_roles)[0]) {
+			guildMember.roles.add(nitro_roles[Object.keys(nitro_roles)[0]]);
+			if (guildMember.roles.cache.find(r => r.id === nitro_roles[Object.keys(nitro_roles)[1]])) {
+				reaction.message.reactions.resolve(Object.keys(nitro_roles)[1]).users.remove(user.id);
+			}
+		}
+		else if(emoji.id === Object.keys(nitro_roles)[1]) {
+			guildMember.roles.add(nitro_roles[Object.keys(nitro_roles)[1]]);
+			if (guildMember.roles.cache.find(r => r.id === nitro_roles[Object.keys(nitro_roles)[0]])) {
+				reaction.message.reactions.resolve(Object.keys(nitro_roles)[0]).users.remove(user.id);
 			}
 		}
 		return;
@@ -150,7 +241,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 client.on('messageReactionRemove', async (reaction, user) => {
 	const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
-	const { kofi_message_id, roles, donator_role } = config;
+	const { kofi_message_id, roles, donator_role, kofi_roles, nitro_roles, nitro_role, nitro_message_id } = config;
 	if(!user) return;
 	if(user.bot)return;
 	if(!reaction.message.channel.guild) return;
@@ -173,11 +264,21 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	const guildMember = guild ? guild.members.cache.get(user.id) : null;
 
 	if(message.id === kofi_message_id && guildMember.roles.cache.find(r => r.name === donator_role)) {
-		if(emoji.id === Object.keys(roles)[0]) {
-			guildMember.roles.remove(roles[Object.keys(roles)[0]]);
+		if(emoji.id === Object.keys(kofi_roles)[0]) {
+			guildMember.roles.remove(kofi_roles[Object.keys(kofi_roles)[0]]);
 		}
-		else if(emoji.id === Object.keys(roles)[1]) {
-			guildMember.roles.remove(roles[Object.keys(roles)[1]]);
+		else if(emoji.id === Object.keys(kofi_roles)[1]) {
+			guildMember.roles.remove(kofi_roles[Object.keys(kofi_roles)[1]]);
+		}
+		return;
+	}
+
+	if(message.id === nitro_message_id && guildMember.roles.cache.find(r => r.name === nitro_role)) {
+		if(emoji.id === Object.keys(nitro_roles)[0]) {
+			guildMember.roles.remove(nitro_roles[Object.keys(nitro_roles)[0]]);
+		}
+		else if(emoji.id === Object.keys(nitro_roles)[1]) {
+			guildMember.roles.remove(nitro_roles[Object.keys(nitro_roles)[1]]);
 		}
 		return;
 	}
@@ -216,9 +317,5 @@ async function onDonation(
 	}
 }
 
-function requireUncached(module) {
-	delete require.cache[require.resolve(module)];
-	return require(module);
-}
 
 webhookListener.on('donation', onDonation);
