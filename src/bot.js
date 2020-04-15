@@ -3,8 +3,33 @@ const fs = require('fs');
 const webhookListener = require('./webhook_listener.js');
 const { prefix, token } = require('./config.json');
 const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+const schedule = require ('node-schedule');
 
 client.login(token);
+
+client.on('ready', () => {
+	schedule.scheduleJob('0 0 * * *', () => { 
+		const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
+		const date = new Date();
+
+		for (var key of Object.keys(config.kofi_users)) {
+			if(config.kofi_users[key] === date.toLocaleDateString()) {
+				const guild = client.guilds.cache.find(guild => guild.members.cache.has(key));
+				const guildMember = guild.members.cache.get(key);
+
+				const role = Array.from(guild.roles.cache.values())
+					.find(role => role.name === donator_role);
+				guildMember.roles.remove(role.id);
+
+				for(var key of Object.keys(config.roles)) {
+					if(guildMember.roles.cache.find(r => r.name === donator_role)) {
+						guildMember.roles.remove(config.roles[key]);
+					}
+				}				
+			}
+		}
+	});
+});
 
 client.on('message', message => {
 	const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
@@ -178,6 +203,11 @@ async function onDonation(
 		const role = Array.from(guild.roles.cache.values())
 			.find(role => role.name === donator_role);
 		guildMember.roles.add(role.id);
+
+		const date = new Date();
+		date.setDate(date.getDate() + 31)
+		config.kofi_users[guildMember.id] = date.toLocaleDateString('en-GB');
+		fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
 		return await guildMember.send(donation_thanks_message);
 	}
 	catch (err) {
