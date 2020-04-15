@@ -284,6 +284,19 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	}
 });
 
+client.on('guildMemberUpdate', ( oldmember, newmember) => {
+	const guild =  client.guilds.cache.find(guild => guild.members.cache.has(newmember.id));
+	const role = Array.from(guild.roles.cache.values())
+			.find(role => role.name === "Nitro & Ko-fi Supporters");
+	if (newmember.premiumSinceTimestamp !== null) {
+		newmember.roles.add(role);
+	} else {
+		if(guildMember.roles.cache.find(r => r.id === nitro_roles[Object.keys(nitro_roles)[0]])) {
+			newmember.roles.cache.remove(role);
+		}
+	}
+});
+
 async function onDonation(
 	paymentSource,
 	paymentId,
