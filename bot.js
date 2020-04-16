@@ -1,14 +1,14 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const webhookListener = require('./webhook_listener.js');
-const { prefix, token } = require('./config.json');
+const { prefix } = require('./config.json');
 const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 const schedule = require ('node-schedule');
 const emojipasta = require ('./emojipasta.js');
 const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
 
-client.login(token);
+client.login(process.env.BOT_TOKEN);
 
 client.on('ready', () => {
 	schedule.scheduleJob('0 0 * * *', () => {
