@@ -312,7 +312,7 @@ client.on('guildMemberUpdate', (oldmember, newmember) => {
 		newmember.roles.add(role);
 	}
 	else if(guildMember.roles.cache.find(r => r.id === nitro_roles[Object.keys(nitro_roles)[0]])) {
-		newmember.roles.cache.remove(role);
+		guildMember.roles.remove(role);
 		for(const key of Object.keys(config.nitro_roles)) {
 			guildMember.roles.remove(config.nitro_roles[key]);
 		}
