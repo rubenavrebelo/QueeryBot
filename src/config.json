@@ -1,0 +1,22 @@
+{
+  "prefix": "q?",
+  "token": "Njk4OTAyMTg2MDEyMTgwNDgx.XpMlew.G8hc6RLWOHcAulQrYxv7IyhbLfw",
+  "help_channel_id": "645662502348390416",
+  "donator_role": "Ko-fi",
+  "nitro_role": "Nitro Daddy",
+  "donation_thanks_message": "Teste 12345 ",
+  "kofi_roles": {
+    "699077865911877632": "699061975174348826",
+    "699077930168614974": "699062005725921367"
+  },
+  "kofi_message_id": "700335128148312105",
+  "nitro-message-id": "-1",
+  "kofi_users": {
+    "142694200649973760": "16/05/2020"
+  },
+  "nitro_roles": {
+    "699077865911877632": "700117302116352081",
+    "699077930168614974": "700117332030128157"
+  },
+  "nitro_message_id": "700335129368723477"
+}
